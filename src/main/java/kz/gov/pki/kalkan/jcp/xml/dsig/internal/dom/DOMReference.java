@@ -74,8 +74,12 @@ public final class DOMReference extends kz.gov.pki.kalkan.jcp.xml.dsig.internal.
     * If true, overrides the same property if set in the XMLSignContext.
     */
     private static boolean useC14N11 =
-        AccessController.doPrivileged((PrivilegedAction<Boolean>)
-            () -> Boolean.getBoolean("com.sun.org.apache.xml.internal.security.useC14N11"));
+        AccessController.doPrivileged(new PrivilegedAction<Boolean>() {
+            @Override
+            public Boolean run() {
+                return Boolean.getBoolean("com.sun.org.apache.xml.internal.security.useC14N11");
+            }
+        });
 
     private static final org.slf4j.Logger LOG =
         org.slf4j.LoggerFactory.getLogger(DOMReference.class);
