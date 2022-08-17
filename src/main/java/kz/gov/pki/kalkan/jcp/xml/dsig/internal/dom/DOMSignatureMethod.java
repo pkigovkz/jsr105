@@ -78,6 +78,8 @@ public abstract class DOMSignatureMethod extends kz.gov.pki.kalkan.jcp.xml.dsig.
         "http://www.w3.org/2009/xmldsig11#dsa-sha256";
     static final String ECGOST34310_GOST34311 =
             "http://www.w3.org/2001/04/xmldsig-more#gost34310-gost34311";
+    static final String ECGOST3410_2015_512_GOST3411_2015_512 =
+            "urn:ietf:params:xml:ns:pkigovkz:xmlsec:algorithms:gostr34102015-gostr34112015-512";
 
     // see RFC 6931 for these algorithm definitions
     static final String ECDSA_RIPEMD160 =
@@ -177,6 +179,8 @@ public abstract class DOMSignatureMethod extends kz.gov.pki.kalkan.jcp.xml.dsig.
             return new RIPEMD160withECDSA(smElem);
         } else if (alg.equals(ECGOST34310_GOST34311)) {
             return new GOST34311withECGOST34310(smElem);
+        } else if (alg.equals(ECGOST3410_2015_512_GOST3411_2015_512)) {
+            return new GOST3411_2015withECGOST3410_2015(smElem);
         } else if (alg.equals(SignatureMethod.HMAC_SHA1)) {
             return new kz.gov.pki.kalkan.jcp.xml.dsig.internal.dom.DOMHMACSignatureMethod.SHA1(smElem);
         } else if (alg.equals(kz.gov.pki.kalkan.jcp.xml.dsig.internal.dom.DOMHMACSignatureMethod.HMAC_SHA224)) {
@@ -718,6 +722,28 @@ public abstract class DOMSignatureMethod extends kz.gov.pki.kalkan.jcp.xml.dsig.
         @Override
         Type getAlgorithmType() {
             return Type.ECGOST34310;
+        }
+    }
+
+    static final class GOST3411_2015withECGOST3410_2015 extends DOMSignatureMethod {
+        GOST3411_2015withECGOST3410_2015(AlgorithmParameterSpec params)
+                throws InvalidAlgorithmParameterException {
+            super(params);
+        }
+        GOST3411_2015withECGOST3410_2015(Element dmElem) throws MarshalException {
+            super(dmElem);
+        }
+        @Override
+        public String getAlgorithm() {
+            return ECGOST3410_2015_512_GOST3411_2015_512;
+        }
+        @Override
+        String getJCAAlgorithm() {
+            return "GOST3411-2015withECGOST3410-2015";
+        }
+        @Override
+        Type getAlgorithmType() {
+            return Type.ECGOST3410_2015;
         }
     }
 

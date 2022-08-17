@@ -59,6 +59,8 @@ public abstract class DOMDigestMethod extends DOMStructure
         "http://www.w3.org/2007/05/xmldsig-more#sha3-512"; // see RFC 6931
     static final String GOST34311 =
             "http://www.w3.org/2001/04/xmldsig-more#gost34311";
+    static final String GOST3411_2015_512 =
+            "urn:ietf:params:xml:ns:pkigovkz:xmlsec:algorithms:gostr34112015-512";
 
     private DigestMethodParameterSpec params;
 
@@ -125,6 +127,8 @@ public abstract class DOMDigestMethod extends DOMStructure
             return new SHA3_512(dmElem);
         } else if (alg.equals(GOST34311)) {
             return new GOST34311(dmElem);
+        } else if (alg.equals(GOST3411_2015_512)) {
+            return new GOST3411_2015(dmElem);
         } else {
             throw new MarshalException("unsupported DigestMethod algorithm: " +
                                        alg);
@@ -452,6 +456,24 @@ public abstract class DOMDigestMethod extends DOMStructure
         @Override
         String getMessageDigestAlgorithm() {
             return "GOST34311";
+        }
+    }
+
+    static final class GOST3411_2015 extends DOMDigestMethod {
+        GOST3411_2015(AlgorithmParameterSpec params)
+                throws InvalidAlgorithmParameterException {
+            super(params);
+        }
+        GOST3411_2015(Element dmElem) throws MarshalException {
+            super(dmElem);
+        }
+        @Override
+        public String getAlgorithm() {
+            return GOST3411_2015_512;
+        }
+        @Override
+        String getMessageDigestAlgorithm() {
+            return "GOST3411-2015-512";
         }
     }
 }
