@@ -739,7 +739,7 @@ public abstract class DOMSignatureMethod extends kz.gov.pki.kalkan.jcp.xml.dsig.
         }
         @Override
         String getJCAAlgorithm() {
-            return "GOST3411-2015withECGOST3410-2015";
+            return "GOST3411-2015withECGOST3410-2015-512";
         }
         @Override
         Type getAlgorithmType() {
