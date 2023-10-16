@@ -26,48 +26,63 @@
  *
  * ===========================================================================
  */
-/*
- * $Id$
- */
 package kz.gov.pki.kalkan.jcp.xml.dsig.internal.dom;
-
-import javax.xml.crypto.*;
-import javax.xml.crypto.dom.*;
-import javax.xml.crypto.dsig.*;
-import javax.xml.crypto.dsig.dom.DOMSignContext;
-import javax.xml.crypto.dsig.dom.DOMValidateContext;
-import javax.xml.crypto.dsig.keyinfo.KeyInfo;
 
 import java.security.InvalidKeyException;
 import java.security.Key;
 import java.security.Provider;
-import java.util.Collections;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import javax.xml.crypto.KeySelector;
+import javax.xml.crypto.KeySelectorException;
+import javax.xml.crypto.KeySelectorResult;
+import javax.xml.crypto.MarshalException;
+import javax.xml.crypto.XMLCryptoContext;
+import javax.xml.crypto.XMLStructure;
+import javax.xml.crypto.dom.DOMCryptoContext;
+import javax.xml.crypto.dsig.Manifest;
+import javax.xml.crypto.dsig.Reference;
+import javax.xml.crypto.dsig.SignatureMethod;
+import javax.xml.crypto.dsig.SignedInfo;
+import javax.xml.crypto.dsig.Transform;
+import javax.xml.crypto.dsig.XMLObject;
+import javax.xml.crypto.dsig.XMLSignContext;
+import javax.xml.crypto.dsig.XMLSignature;
+import javax.xml.crypto.dsig.XMLSignatureException;
+import javax.xml.crypto.dsig.XMLValidateContext;
+import javax.xml.crypto.dsig.dom.DOMSignContext;
+import javax.xml.crypto.dsig.dom.DOMValidateContext;
+import javax.xml.crypto.dsig.keyinfo.KeyInfo;
+
+import org.apache.jcp.xml.dsig.internal.dom.DOMKeyInfo;
+import org.apache.jcp.xml.dsig.internal.dom.DOMManifest;
+import org.apache.jcp.xml.dsig.internal.dom.DOMStructure;
+import org.apache.jcp.xml.dsig.internal.dom.DOMUtils;
+import org.apache.jcp.xml.dsig.internal.dom.DOMXMLObject;
+import org.apache.xml.security.utils.XMLUtils;
 import org.w3c.dom.Attr;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 
-import org.apache.xml.security.utils.XMLUtils;
-
 /**
  * DOM-based implementation of XMLSignature.
  *
  */
-public final class DOMXMLSignature extends kz.gov.pki.kalkan.jcp.xml.dsig.internal.dom.DOMStructure
+public final class DOMXMLSignature extends DOMStructure
     implements XMLSignature {
 
     private static final org.slf4j.Logger LOG =
         org.slf4j.LoggerFactory.getLogger(DOMXMLSignature.class);
-    private String id;
-    private SignatureValue sv;
+    private final String id;
+    private final SignatureValue sv;
     private KeyInfo ki;
     private List<XMLObject> objects;
-    private SignedInfo si;
+    private final SignedInfo si;
     private Document ownerDoc = null;
     private Element localSigElem = null;
     private Element sigElem = null;
@@ -132,25 +147,25 @@ public final class DOMXMLSignature extends kz.gov.pki.kalkan.jcp.xml.dsig.intern
         ownerDoc = localSigElem.getOwnerDocument();
 
         // get Id attribute, if specified
-        id = kz.gov.pki.kalkan.jcp.xml.dsig.internal.dom.DOMUtils.getAttributeValue(localSigElem, "Id");
+        id = DOMUtils.getAttributeValue(localSigElem, "Id");
         // unmarshal SignedInfo
-        Element siElem = kz.gov.pki.kalkan.jcp.xml.dsig.internal.dom.DOMUtils.getFirstChildElement(localSigElem,
+        Element siElem = DOMUtils.getFirstChildElement(localSigElem,
                                                        "SignedInfo",
                                                        XMLSignature.XMLNS);
         si = new DOMSignedInfo(siElem, context, provider);
 
         // unmarshal SignatureValue
-        Element sigValElem = kz.gov.pki.kalkan.jcp.xml.dsig.internal.dom.DOMUtils.getNextSiblingElement(siElem,
+        Element sigValElem = DOMUtils.getNextSiblingElement(siElem,
                                                             "SignatureValue",
                                                             XMLSignature.XMLNS);
         sv = new DOMSignatureValue(sigValElem);
 
         // unmarshal KeyInfo, if specified
-        Element nextSibling = kz.gov.pki.kalkan.jcp.xml.dsig.internal.dom.DOMUtils.getNextSiblingElement(sigValElem);
-        if (nextSibling != null && nextSibling.getLocalName().equals("KeyInfo")
+        Element nextSibling = DOMUtils.getNextSiblingElement(sigValElem);
+        if (nextSibling != null && "KeyInfo".equals(nextSibling.getLocalName())
             && XMLSignature.XMLNS.equals(nextSibling.getNamespaceURI())) {
-            ki = new kz.gov.pki.kalkan.jcp.xml.dsig.internal.dom.DOMKeyInfo(nextSibling, context, provider);
-            nextSibling = kz.gov.pki.kalkan.jcp.xml.dsig.internal.dom.DOMUtils.getNextSiblingElement(nextSibling);
+            ki = new DOMKeyInfo(nextSibling, context, provider);
+            nextSibling = DOMUtils.getNextSiblingElement(nextSibling);
         }
 
         // unmarshal Objects, if specified
@@ -167,32 +182,38 @@ public final class DOMXMLSignature extends kz.gov.pki.kalkan.jcp.xml.dsig.intern
                 }
                 tempObjects.add(new DOMXMLObject(nextSibling,
                                                  context, provider));
-                nextSibling = kz.gov.pki.kalkan.jcp.xml.dsig.internal.dom.DOMUtils.getNextSiblingElement(nextSibling);
+                nextSibling = DOMUtils.getNextSiblingElement(nextSibling);
             }
             objects = Collections.unmodifiableList(tempObjects);
         }
     }
 
+    @Override
     public String getId() {
         return id;
     }
 
+    @Override
     public KeyInfo getKeyInfo() {
         return ki;
     }
 
+    @Override
     public SignedInfo getSignedInfo() {
         return si;
     }
 
+    @Override
     public List<XMLObject> getObjects() {
         return objects;
     }
 
+    @Override
     public SignatureValue getSignatureValue() {
         return sv;
     }
 
+    @Override
     public KeySelectorResult getKeySelectorResult() {
         return ksr;
     }
@@ -208,8 +229,8 @@ public final class DOMXMLSignature extends kz.gov.pki.kalkan.jcp.xml.dsig.intern
                         DOMCryptoContext context)
         throws MarshalException
     {
-        ownerDoc = kz.gov.pki.kalkan.jcp.xml.dsig.internal.dom.DOMUtils.getOwnerDocument(parent);
-        sigElem = kz.gov.pki.kalkan.jcp.xml.dsig.internal.dom.DOMUtils.createElement(ownerDoc, "Signature",
+        ownerDoc = DOMUtils.getOwnerDocument(parent);
+        sigElem = DOMUtils.createElement(ownerDoc, "Signature",
                                          XMLSignature.XMLNS, dsPrefix);
 
         // append xmlns attribute
@@ -233,12 +254,12 @@ public final class DOMXMLSignature extends kz.gov.pki.kalkan.jcp.xml.dsig.intern
         }
 
         // create and append Object elements if necessary
-        for (int i = 0, size = objects.size(); i < size; i++) {
-            ((DOMXMLObject)objects.get(i)).marshal(sigElem, dsPrefix, context);
+        for (XMLObject object : objects) {
+            ((DOMXMLObject)object).marshal(sigElem, dsPrefix, context);
         }
 
         // append Id attribute
-        kz.gov.pki.kalkan.jcp.xml.dsig.internal.dom.DOMUtils.setAttributeID(sigElem, "Id", id);
+        DOMUtils.setAttributeID(sigElem, "Id", id);
 
         parent.insertBefore(sigElem, nextSibling);
     }
@@ -330,7 +351,7 @@ public final class DOMXMLSignature extends kz.gov.pki.kalkan.jcp.xml.dsig.intern
         }
         DOMSignContext context = (DOMSignContext)signContext;
         marshal(context.getParent(), context.getNextSibling(),
-                kz.gov.pki.kalkan.jcp.xml.dsig.internal.dom.DOMUtils.getSignaturePrefix(context), context);
+                DOMUtils.getSignaturePrefix(context), context);
 
         // generate references and signature value
         List<Reference> allReferences = new ArrayList<>();
@@ -368,15 +389,15 @@ public final class DOMXMLSignature extends kz.gov.pki.kalkan.jcp.xml.dsig.intern
 
         // generate/digest each reference
         for (Reference ref : allReferences) {
-            digestReference((kz.gov.pki.kalkan.jcp.xml.dsig.internal.dom.DOMReference)ref, signContext);
+            digestReference((DOMReference)ref, signContext);
         }
 
         // do final sweep to digest any references that were skipped or missed
         for (Reference ref : allReferences) {
-            if (((kz.gov.pki.kalkan.jcp.xml.dsig.internal.dom.DOMReference)ref).isDigested()) {
+            if (((DOMReference)ref).isDigested()) {
                 continue;
             }
-            ((kz.gov.pki.kalkan.jcp.xml.dsig.internal.dom.DOMReference)ref).digest(signContext);
+            ((DOMReference)ref).digest(signContext);
         }
 
         Key signingKey = null;
@@ -397,7 +418,7 @@ public final class DOMXMLSignature extends kz.gov.pki.kalkan.jcp.xml.dsig.intern
 
         // calculate signature value
         try {
-            byte[] val = ((kz.gov.pki.kalkan.jcp.xml.dsig.internal.dom.AbstractDOMSignatureMethod)
+            byte[] val = ((AbstractDOMSignatureMethod)
                 si.getSignatureMethod()).sign(signingKey, si, signContext);
             ((DOMSignatureValue)sv).setValue(val);
         } catch (InvalidKeyException ike) {
@@ -446,7 +467,7 @@ public final class DOMXMLSignature extends kz.gov.pki.kalkan.jcp.xml.dsig.intern
         return result;
     }
 
-    private void digestReference(kz.gov.pki.kalkan.jcp.xml.dsig.internal.dom.DOMReference ref, XMLSignContext signContext)
+    private void digestReference(DOMReference ref, XMLSignContext signContext)
         throws XMLSignatureException
     {
         if (ref.isDigested()) {
@@ -454,18 +475,17 @@ public final class DOMXMLSignature extends kz.gov.pki.kalkan.jcp.xml.dsig.intern
         }
         // check dependencies
         String uri = ref.getURI();
-        if (kz.gov.pki.kalkan.jcp.xml.dsig.internal.dom.Utils.sameDocumentURI(uri)) {
+        if (Utils.sameDocumentURI(uri)) {
             String parsedId = Utils.parseIdFromSameDocumentURI(uri);
             if (parsedId != null && signatureIdMap.containsKey(parsedId)) {
                 XMLStructure xs = signatureIdMap.get(parsedId);
-                if (xs instanceof kz.gov.pki.kalkan.jcp.xml.dsig.internal.dom.DOMReference) {
-                    digestReference((kz.gov.pki.kalkan.jcp.xml.dsig.internal.dom.DOMReference)xs, signContext);
+                if (xs instanceof DOMReference) {
+                    digestReference((DOMReference) xs, signContext);
                 } else if (xs instanceof Manifest) {
-                    Manifest man = (Manifest)xs;
+                    Manifest man = (Manifest) xs;
                     List<Reference> manRefs = DOMManifest.getManifestReferences(man);
-                    for (int i = 0, size = manRefs.size(); i < size; i++) {
-                        digestReference((DOMReference)manRefs.get(i),
-                                        signContext);
+                    for (Reference manRef : manRefs) {
+                        digestReference((DOMReference) manRef, signContext);
                     }
                 }
             }
@@ -517,10 +537,12 @@ public final class DOMXMLSignature extends kz.gov.pki.kalkan.jcp.xml.dsig.intern
             this.sigValueElem = sigValueElem;
         }
 
+        @Override
         public String getId() {
             return id;
         }
 
+        @Override
         public byte[] getValue() {
             return (value == null) ? null : value.clone();
         }
@@ -565,7 +587,7 @@ public final class DOMXMLSignature extends kz.gov.pki.kalkan.jcp.xml.dsig.intern
 
             // canonicalize SignedInfo and verify signature
             try {
-                validationStatus = ((kz.gov.pki.kalkan.jcp.xml.dsig.internal.dom.AbstractDOMSignatureMethod)sm).verify
+                validationStatus = ((AbstractDOMSignatureMethod)sm).verify
                     (validationKey, si, value, validateContext);
             } catch (Exception e) {
                 throw new XMLSignatureException(e);
@@ -604,12 +626,13 @@ public final class DOMXMLSignature extends kz.gov.pki.kalkan.jcp.xml.dsig.intern
             return result;
         }
 
+        @Override
         public void marshal(Node parent, String dsPrefix,
                             DOMCryptoContext context)
             throws MarshalException
         {
             // create SignatureValue element
-            sigValueElem = kz.gov.pki.kalkan.jcp.xml.dsig.internal.dom.DOMUtils.createElement(ownerDoc, "SignatureValue",
+            sigValueElem = DOMUtils.createElement(ownerDoc, "SignatureValue",
                                                   XMLSignature.XMLNS, dsPrefix);
             if (valueBase64 != null) {
                 sigValueElem.appendChild(ownerDoc.createTextNode(valueBase64));

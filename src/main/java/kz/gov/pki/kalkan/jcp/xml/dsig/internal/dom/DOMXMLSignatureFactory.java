@@ -19,22 +19,45 @@
 /*
  * Copyright 2005 Sun Microsystems, Inc. All rights reserved.
  */
-/*
- * $Id$
- */
 package kz.gov.pki.kalkan.jcp.xml.dsig.internal.dom;
-
-import javax.xml.crypto.*;
-import javax.xml.crypto.dom.DOMCryptoContext;
-import javax.xml.crypto.dsig.*;
-import javax.xml.crypto.dsig.dom.DOMValidateContext;
-import javax.xml.crypto.dsig.keyinfo.*;
-import javax.xml.crypto.dsig.spec.*;
 
 import java.security.InvalidAlgorithmParameterException;
 import java.security.NoSuchAlgorithmException;
 import java.util.List;
 
+import javax.xml.crypto.Data;
+import javax.xml.crypto.MarshalException;
+import javax.xml.crypto.URIDereferencer;
+import javax.xml.crypto.XMLCryptoContext;
+import javax.xml.crypto.XMLStructure;
+import javax.xml.crypto.dom.DOMCryptoContext;
+import javax.xml.crypto.dsig.CanonicalizationMethod;
+import javax.xml.crypto.dsig.DigestMethod;
+import javax.xml.crypto.dsig.Manifest;
+import javax.xml.crypto.dsig.Reference;
+import javax.xml.crypto.dsig.SignatureMethod;
+import javax.xml.crypto.dsig.SignatureProperties;
+import javax.xml.crypto.dsig.SignatureProperty;
+import javax.xml.crypto.dsig.SignedInfo;
+import javax.xml.crypto.dsig.Transform;
+import javax.xml.crypto.dsig.TransformService;
+import javax.xml.crypto.dsig.XMLObject;
+import javax.xml.crypto.dsig.XMLSignature;
+import javax.xml.crypto.dsig.XMLSignatureFactory;
+import javax.xml.crypto.dsig.XMLValidateContext;
+import javax.xml.crypto.dsig.dom.DOMValidateContext;
+import javax.xml.crypto.dsig.keyinfo.KeyInfo;
+import javax.xml.crypto.dsig.spec.C14NMethodParameterSpec;
+import javax.xml.crypto.dsig.spec.DigestMethodParameterSpec;
+import javax.xml.crypto.dsig.spec.SignatureMethodParameterSpec;
+import javax.xml.crypto.dsig.spec.TransformParameterSpec;
+
+import org.apache.jcp.xml.dsig.internal.dom.DOMCanonicalizationMethod;
+import org.apache.jcp.xml.dsig.internal.dom.DOMManifest;
+import org.apache.jcp.xml.dsig.internal.dom.DOMSignatureProperties;
+import org.apache.jcp.xml.dsig.internal.dom.DOMSignatureProperty;
+import org.apache.jcp.xml.dsig.internal.dom.DOMTransform;
+import org.apache.jcp.xml.dsig.internal.dom.DOMXMLObject;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
@@ -50,24 +73,28 @@ public final class DOMXMLSignatureFactory extends XMLSignatureFactory {
      */
     public DOMXMLSignatureFactory() {}
 
+    @Override
     public XMLSignature newXMLSignature(SignedInfo si, KeyInfo ki) {
-        return new kz.gov.pki.kalkan.jcp.xml.dsig.internal.dom.DOMXMLSignature(si, ki, null, null, null);
+        return new DOMXMLSignature(si, ki, null, null, null);
     }
 
+    @Override
     @SuppressWarnings({ "unchecked", "rawtypes" })
     public XMLSignature newXMLSignature(SignedInfo si, KeyInfo ki,
         List objects, String id, String signatureValueId) {
-        return new kz.gov.pki.kalkan.jcp.xml.dsig.internal.dom.DOMXMLSignature(si, ki, objects, id, signatureValueId);
+        return new DOMXMLSignature(si, ki, objects, id, signatureValueId);
     }
 
+    @Override
     public Reference newReference(String uri, DigestMethod dm) {
         return newReference(uri, dm, null, null, null);
     }
 
+    @Override
     @SuppressWarnings({ "unchecked", "rawtypes" })
     public Reference newReference(String uri, DigestMethod dm, List transforms,
         String type, String id) {
-        return new kz.gov.pki.kalkan.jcp.xml.dsig.internal.dom.DOMReference(uri, type, dm, transforms, id, getProvider());
+        return new DOMReference(uri, type, dm, transforms, id, getProvider());
     }
 
     @Override
@@ -84,10 +111,11 @@ public final class DOMXMLSignatureFactory extends XMLSignatureFactory {
         if (result == null) {
             throw new NullPointerException("result cannot be null");
         }
-        return new kz.gov.pki.kalkan.jcp.xml.dsig.internal.dom.DOMReference
+        return new DOMReference
             (uri, type, dm, appliedTransforms, result, transforms, id, getProvider());
     }
 
+    @Override
     @SuppressWarnings({ "unchecked", "rawtypes" })
     public Reference newReference(String uri, DigestMethod dm, List transforms,
         String type, String id, byte[] digestValue) {
@@ -98,12 +126,14 @@ public final class DOMXMLSignatureFactory extends XMLSignatureFactory {
             (uri, type, dm, null, null, transforms, id, digestValue, getProvider());
     }
 
+    @Override
     @SuppressWarnings({ "rawtypes" })
     public SignedInfo newSignedInfo(CanonicalizationMethod cm,
         SignatureMethod sm, List references) {
         return newSignedInfo(cm, sm, references, null);
     }
 
+    @Override
     @SuppressWarnings({ "unchecked", "rawtypes" })
     public SignedInfo newSignedInfo(CanonicalizationMethod cm,
         SignatureMethod sm, List references, String id) {
@@ -111,33 +141,39 @@ public final class DOMXMLSignatureFactory extends XMLSignatureFactory {
     }
 
     // Object factory methods
+    @Override
     @SuppressWarnings({ "unchecked", "rawtypes" })
     public XMLObject newXMLObject(List content, String id, String mimeType,
         String encoding) {
         return new DOMXMLObject(content, id, mimeType, encoding);
     }
 
+    @Override
     @SuppressWarnings({ "rawtypes" })
     public Manifest newManifest(List references) {
         return newManifest(references, null);
     }
 
+    @Override
     @SuppressWarnings({ "unchecked", "rawtypes" })
     public Manifest newManifest(List references, String id) {
         return new DOMManifest(references, id);
     }
 
+    @Override
     @SuppressWarnings({ "unchecked", "rawtypes" })
     public SignatureProperties newSignatureProperties(List props, String id) {
         return new DOMSignatureProperties(props, id);
     }
 
+    @Override
     @SuppressWarnings({ "unchecked", "rawtypes" })
     public SignatureProperty newSignatureProperty
         (List info, String target, String id) {
         return new DOMSignatureProperty(info, target, id);
     }
 
+    @Override
     public XMLSignature unmarshalXMLSignature(XMLValidateContext context)
         throws MarshalException {
 
@@ -147,6 +183,7 @@ public final class DOMXMLSignatureFactory extends XMLSignatureFactory {
         return unmarshal(((DOMValidateContext) context).getNode(), context);
     }
 
+    @Override
     public XMLSignature unmarshalXMLSignature(XMLStructure xmlStructure)
         throws MarshalException {
 
@@ -188,12 +225,19 @@ public final class DOMXMLSignatureFactory extends XMLSignatureFactory {
                 "support DOM Level 2 and be namespace aware");
         }
         if ("Signature".equals(tag) && XMLSignature.XMLNS.equals(namespace)) {
-            return new DOMXMLSignature(element, context, getProvider());
+            try {
+                return new DOMXMLSignature(element, context, getProvider());
+            } catch (MarshalException me) {
+                throw me;
+            } catch (Exception e) {
+                throw new MarshalException(e);
+            }
         } else {
-            throw new MarshalException("invalid Signature tag: " + namespace + ":" + tag);
+            throw new MarshalException("Invalid Signature tag: " + namespace + ":" + tag);
         }
     }
 
+    @Override
     public boolean isFeatureSupported(String feature) {
         if (feature == null) {
             throw new NullPointerException();
@@ -202,6 +246,7 @@ public final class DOMXMLSignatureFactory extends XMLSignatureFactory {
         }
     }
 
+    @Override
     public DigestMethod newDigestMethod(String algorithm,
         DigestMethodParameterSpec params) throws NoSuchAlgorithmException,
         InvalidAlgorithmParameterException {
@@ -209,36 +254,19 @@ public final class DOMXMLSignatureFactory extends XMLSignatureFactory {
             throw new NullPointerException();
         }
         if (algorithm.equals(DigestMethod.SHA1)) {
-            return new kz.gov.pki.kalkan.jcp.xml.dsig.internal.dom.DOMDigestMethod.SHA1(params);
-        } else if (algorithm.equals(kz.gov.pki.kalkan.jcp.xml.dsig.internal.dom.DOMDigestMethod.SHA224)) {
-            return new kz.gov.pki.kalkan.jcp.xml.dsig.internal.dom.DOMDigestMethod.SHA224(params);
+            return new DOMDigestMethod.SHA1(params);
         } else if (algorithm.equals(DigestMethod.SHA256)) {
-            return new kz.gov.pki.kalkan.jcp.xml.dsig.internal.dom.DOMDigestMethod.SHA256(params);
-        } else if (algorithm.equals(kz.gov.pki.kalkan.jcp.xml.dsig.internal.dom.DOMDigestMethod.SHA384)) {
-            return new kz.gov.pki.kalkan.jcp.xml.dsig.internal.dom.DOMDigestMethod.SHA384(params);
-        } else if (algorithm.equals(DigestMethod.SHA512)) {
-            return new kz.gov.pki.kalkan.jcp.xml.dsig.internal.dom.DOMDigestMethod.SHA512(params);
-        } else if (algorithm.equals(DigestMethod.RIPEMD160)) {
-            return new kz.gov.pki.kalkan.jcp.xml.dsig.internal.dom.DOMDigestMethod.RIPEMD160(params);
-        } else if (algorithm.equals(kz.gov.pki.kalkan.jcp.xml.dsig.internal.dom.DOMDigestMethod.WHIRLPOOL)) {
-            return new kz.gov.pki.kalkan.jcp.xml.dsig.internal.dom.DOMDigestMethod.WHIRLPOOL(params);
-        } else if (algorithm.equals(kz.gov.pki.kalkan.jcp.xml.dsig.internal.dom.DOMDigestMethod.SHA3_224)) {
-            return new kz.gov.pki.kalkan.jcp.xml.dsig.internal.dom.DOMDigestMethod.SHA3_224(params);
-        } else if (algorithm.equals(kz.gov.pki.kalkan.jcp.xml.dsig.internal.dom.DOMDigestMethod.SHA3_256)) {
-            return new kz.gov.pki.kalkan.jcp.xml.dsig.internal.dom.DOMDigestMethod.SHA3_256(params);
-        } else if (algorithm.equals(kz.gov.pki.kalkan.jcp.xml.dsig.internal.dom.DOMDigestMethod.SHA3_384)) {
-            return new kz.gov.pki.kalkan.jcp.xml.dsig.internal.dom.DOMDigestMethod.SHA3_384(params);
-        } else if (algorithm.equals(kz.gov.pki.kalkan.jcp.xml.dsig.internal.dom.DOMDigestMethod.SHA3_512)) {
-            return new DOMDigestMethod.SHA3_512(params);
-        } else if (algorithm.equals(DOMDigestMethod.GOST34311)) {
-            return new DOMDigestMethod.GOST34311(params);
-        } else if (algorithm.equals(DOMDigestMethod.GOST3411_2015_512)) {
-            return new DOMDigestMethod.GOST3411_2015(params);
+            return new DOMDigestMethod.SHA256(params);
+        } else if (algorithm.equals("http://www.w3.org/2001/04/xmldsig-more#gost34311")) {
+            return new DOMDigestMethod.Gost34311_95(params);
+        } else if (algorithm.equals("urn:ietf:params:xml:ns:pkigovkz:xmlsec:algorithms:gostr34112015-512")) {
+            return new DOMDigestMethod.Gost3411_2015_512(params);
         } else {
             throw new NoSuchAlgorithmException("unsupported algorithm");
         }
     }
 
+    @Override
     public SignatureMethod newSignatureMethod(String algorithm,
         SignatureMethodParameterSpec params) throws NoSuchAlgorithmException,
         InvalidAlgorithmParameterException {
@@ -247,65 +275,19 @@ public final class DOMXMLSignatureFactory extends XMLSignatureFactory {
         }
         if (algorithm.equals(SignatureMethod.RSA_SHA1)) {
             return new DOMSignatureMethod.SHA1withRSA(params);
-        } else if (algorithm.equals(DOMSignatureMethod.RSA_SHA224)) {
-            return new DOMSignatureMethod.SHA224withRSA(params);
         } else if (algorithm.equals(DOMSignatureMethod.RSA_SHA256)) {
             return new DOMSignatureMethod.SHA256withRSA(params);
-        } else if (algorithm.equals(DOMSignatureMethod.RSA_SHA384)) {
-            return new DOMSignatureMethod.SHA384withRSA(params);
-        } else if (algorithm.equals(DOMSignatureMethod.RSA_SHA512)) {
-            return new DOMSignatureMethod.SHA512withRSA(params);
-        } else if (algorithm.equals(DOMSignatureMethod.RSA_RIPEMD160)) {
-            return new DOMSignatureMethod.RIPEMD160withRSA(params);
-        } else if (algorithm.equals(DOMSignatureMethod.RSA_SHA1_MGF1)) {
-            return new DOMSignatureMethod.SHA1withRSAandMGF1(params);
-        } else if (algorithm.equals(DOMSignatureMethod.RSA_SHA224_MGF1)) {
-            return new DOMSignatureMethod.SHA224withRSAandMGF1(params);
-        } else if (algorithm.equals(DOMSignatureMethod.RSA_SHA256_MGF1)) {
-            return new DOMSignatureMethod.SHA256withRSAandMGF1(params);
-        } else if (algorithm.equals(DOMSignatureMethod.RSA_SHA384_MGF1)) {
-            return new DOMSignatureMethod.SHA384withRSAandMGF1(params);
-        } else if (algorithm.equals(DOMSignatureMethod.RSA_SHA512_MGF1)) {
-            return new DOMSignatureMethod.SHA512withRSAandMGF1(params);
-        } else if (algorithm.equals(DOMSignatureMethod.RSA_RIPEMD160_MGF1)) {
-            return new DOMSignatureMethod.RIPEMD160withRSAandMGF1(params);
-        } else if (algorithm.equals(SignatureMethod.DSA_SHA1)) {
-            return new DOMSignatureMethod.SHA1withDSA(params);
-        } else if (algorithm.equals(DOMSignatureMethod.DSA_SHA256)) {
-            return new DOMSignatureMethod.SHA256withDSA(params);
-        } else if (algorithm.equals(SignatureMethod.HMAC_SHA1)) {
-            return new kz.gov.pki.kalkan.jcp.xml.dsig.internal.dom.DOMHMACSignatureMethod.SHA1(params);
-        } else if (algorithm.equals(kz.gov.pki.kalkan.jcp.xml.dsig.internal.dom.DOMHMACSignatureMethod.HMAC_SHA224)) {
-            return new kz.gov.pki.kalkan.jcp.xml.dsig.internal.dom.DOMHMACSignatureMethod.SHA224(params);
-        } else if (algorithm.equals(kz.gov.pki.kalkan.jcp.xml.dsig.internal.dom.DOMHMACSignatureMethod.HMAC_SHA256)) {
-            return new kz.gov.pki.kalkan.jcp.xml.dsig.internal.dom.DOMHMACSignatureMethod.SHA256(params);
-        } else if (algorithm.equals(kz.gov.pki.kalkan.jcp.xml.dsig.internal.dom.DOMHMACSignatureMethod.HMAC_SHA384)) {
-            return new kz.gov.pki.kalkan.jcp.xml.dsig.internal.dom.DOMHMACSignatureMethod.SHA384(params);
-        } else if (algorithm.equals(kz.gov.pki.kalkan.jcp.xml.dsig.internal.dom.DOMHMACSignatureMethod.HMAC_SHA512)) {
-            return new kz.gov.pki.kalkan.jcp.xml.dsig.internal.dom.DOMHMACSignatureMethod.SHA512(params);
-        } else if (algorithm.equals(kz.gov.pki.kalkan.jcp.xml.dsig.internal.dom.DOMHMACSignatureMethod.HMAC_RIPEMD160)) {
-            return new DOMHMACSignatureMethod.RIPEMD160(params);
-        } else if (algorithm.equals(DOMSignatureMethod.ECDSA_SHA1)) {
-            return new DOMSignatureMethod.SHA1withECDSA(params);
-        } else if (algorithm.equals(DOMSignatureMethod.ECDSA_SHA224)) {
-            return new DOMSignatureMethod.SHA224withECDSA(params);
-        } else if (algorithm.equals(DOMSignatureMethod.ECDSA_SHA256)) {
-            return new DOMSignatureMethod.SHA256withECDSA(params);
-        } else if (algorithm.equals(DOMSignatureMethod.ECDSA_SHA384)) {
-            return new DOMSignatureMethod.SHA384withECDSA(params);
-        } else if (algorithm.equals(DOMSignatureMethod.ECDSA_SHA512)) {
-            return new DOMSignatureMethod.SHA512withECDSA(params);
-        } else if (algorithm.equals(DOMSignatureMethod.ECDSA_RIPEMD160)) {
-            return new DOMSignatureMethod.RIPEMD160withECDSA(params);
-        } else if (algorithm.equals(DOMSignatureMethod.ECGOST34310_GOST34311)) {
-            return new DOMSignatureMethod.GOST34311withECGOST34310(params);
-        } else if (algorithm.equals(DOMSignatureMethod.ECGOST3410_2015_512_GOST3411_2015_512)) {
-            return new DOMSignatureMethod.GOST3411_2015withECGOST3410_2015(params);
-        }else {
+        } else if (algorithm.equals("http://www.w3.org/2001/04/xmldsig-more#gost34310-gost34311")) {
+            return new DOMSignatureMethod.EcGost34310_2004(params);
+        } else if (algorithm
+                .equals("urn:ietf:params:xml:ns:pkigovkz:xmlsec:algorithms:gostr34102015-gostr34112015-512")) {
+            return new DOMSignatureMethod.EcGost3410_2015_512(params);
+        } else {
             throw new NoSuchAlgorithmException("unsupported algorithm");
         }
     }
 
+    @Override
     public Transform newTransform(String algorithm,
         TransformParameterSpec params) throws NoSuchAlgorithmException,
         InvalidAlgorithmParameterException {
@@ -322,9 +304,10 @@ public final class DOMXMLSignatureFactory extends XMLSignatureFactory {
         }
 
         spi.init(params);
-        return new kz.gov.pki.kalkan.jcp.xml.dsig.internal.dom.DOMTransform(spi);
+        return new DOMTransform(spi);
     }
 
+    @Override
     public Transform newTransform(String algorithm,
         XMLStructure params) throws NoSuchAlgorithmException,
         InvalidAlgorithmParameterException {
@@ -347,6 +330,7 @@ public final class DOMXMLSignatureFactory extends XMLSignatureFactory {
         return new DOMTransform(spi);
     }
 
+    @Override
     public CanonicalizationMethod newCanonicalizationMethod(String algorithm,
         C14NMethodParameterSpec params) throws NoSuchAlgorithmException,
         InvalidAlgorithmParameterException {
@@ -365,6 +349,7 @@ public final class DOMXMLSignatureFactory extends XMLSignatureFactory {
         return new DOMCanonicalizationMethod(spi);
     }
 
+    @Override
     public CanonicalizationMethod newCanonicalizationMethod(String algorithm,
         XMLStructure params) throws NoSuchAlgorithmException,
         InvalidAlgorithmParameterException {
@@ -387,6 +372,7 @@ public final class DOMXMLSignatureFactory extends XMLSignatureFactory {
         return new DOMCanonicalizationMethod(spi);
     }
 
+    @Override
     public URIDereferencer getURIDereferencer() {
         return DOMURIDereferencer.INSTANCE;
     }

@@ -19,21 +19,24 @@
 
 package kz.gov.pki.kalkan.jcp.xml.dsig.internal.dom;
 
-import java.security.Key;
 import java.security.InvalidAlgorithmParameterException;
 import java.security.InvalidKeyException;
+import java.security.Key;
 import java.security.SignatureException;
 import java.security.spec.AlgorithmParameterSpec;
+
 import javax.xml.crypto.MarshalException;
 import javax.xml.crypto.dom.DOMCryptoContext;
 import javax.xml.crypto.dsig.SignatureMethod;
 import javax.xml.crypto.dsig.SignedInfo;
+import javax.xml.crypto.dsig.XMLSignContext;
 import javax.xml.crypto.dsig.XMLSignature;
 import javax.xml.crypto.dsig.XMLSignatureException;
-import javax.xml.crypto.dsig.XMLSignContext;
 import javax.xml.crypto.dsig.XMLValidateContext;
 import javax.xml.crypto.dsig.spec.SignatureMethodParameterSpec;
 
+import org.apache.jcp.xml.dsig.internal.dom.DOMStructure;
+import org.apache.jcp.xml.dsig.internal.dom.DOMUtils;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
@@ -46,7 +49,7 @@ abstract class AbstractDOMSignatureMethod extends DOMStructure
     implements SignatureMethod {
 
     // denotes the type of signature algorithm
-    enum Type { DSA, RSA, ECDSA, HMAC, ECGOST34310, ECGOST3410_2015 }
+    enum Type { RSA, ECGOST }
 
     /**
      * Verifies the passed-in signature with the specified key, using the
@@ -106,9 +109,9 @@ abstract class AbstractDOMSignatureMethod extends DOMStructure
     public void marshal(Node parent, String dsPrefix, DOMCryptoContext context)
         throws MarshalException
     {
-        Document ownerDoc = kz.gov.pki.kalkan.jcp.xml.dsig.internal.dom.DOMUtils.getOwnerDocument(parent);
+        Document ownerDoc = DOMUtils.getOwnerDocument(parent);
 
-        Element smElem = kz.gov.pki.kalkan.jcp.xml.dsig.internal.dom.DOMUtils.createElement(ownerDoc, "SignatureMethod",
+        Element smElem = DOMUtils.createElement(ownerDoc, "SignatureMethod",
                                                 XMLSignature.XMLNS, dsPrefix);
         DOMUtils.setAttribute(smElem, "Algorithm", getAlgorithm());
 
