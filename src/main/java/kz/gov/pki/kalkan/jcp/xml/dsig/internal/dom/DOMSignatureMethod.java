@@ -43,6 +43,7 @@ import javax.xml.crypto.dsig.spec.SignatureMethodParameterSpec;
 
 import org.apache.jcp.xml.dsig.internal.SignerOutputStream;
 import org.apache.jcp.xml.dsig.internal.dom.DOMUtils;
+import org.apache.xml.security.utils.Constants;
 import org.w3c.dom.Element;
 
 /**
@@ -129,7 +130,7 @@ public abstract class DOMSignatureMethod extends AbstractDOMSignatureMethod {
         String alg = DOMUtils.getAttributeValue(smElem, "Algorithm");
         if (alg.equals(SignatureMethod.RSA_SHA1)) {
             return new SHA1withRSA(smElem);
-        } else if (alg.equals(RSA_SHA256)) {
+        } else if (alg.equals(Constants.MoreAlgorithmsSpecNS + "rsa-sha256")) {
             return new SHA256withRSA(smElem);
         } else {
             throw new MarshalException
@@ -292,7 +293,7 @@ public abstract class DOMSignatureMethod extends AbstractDOMSignatureMethod {
         }
         @Override
         public String getAlgorithm() {
-            return SignatureMethod.RSA_SHA256;
+            return Constants.MoreAlgorithmsSpecNS + "rsa-sha256";
         }
         @Override
         String getJCAAlgorithm() {
@@ -337,7 +338,7 @@ public abstract class DOMSignatureMethod extends AbstractDOMSignatureMethod {
         }
         @Override
         public String getAlgorithm() {
-            return "http://www.w3.org/2001/04/xmldsig-more#gost34310-gost34311";
+            return Constants.MoreAlgorithmsSpecNS + "gost34310-gost34311";
         }
         @Override
         String getJCAAlgorithm() {

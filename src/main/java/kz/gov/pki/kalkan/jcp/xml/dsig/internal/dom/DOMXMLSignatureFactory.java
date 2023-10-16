@@ -58,6 +58,7 @@ import org.apache.jcp.xml.dsig.internal.dom.DOMSignatureProperties;
 import org.apache.jcp.xml.dsig.internal.dom.DOMSignatureProperty;
 import org.apache.jcp.xml.dsig.internal.dom.DOMTransform;
 import org.apache.jcp.xml.dsig.internal.dom.DOMXMLObject;
+import org.apache.xml.security.utils.Constants;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
@@ -257,7 +258,7 @@ public final class DOMXMLSignatureFactory extends XMLSignatureFactory {
             return new DOMDigestMethod.SHA1(params);
         } else if (algorithm.equals(DigestMethod.SHA256)) {
             return new DOMDigestMethod.SHA256(params);
-        } else if (algorithm.equals("http://www.w3.org/2001/04/xmldsig-more#gost34311")) {
+        } else if (algorithm.equals(Constants.MoreAlgorithmsSpecNS + "gost34311")) {
             return new DOMDigestMethod.Gost34311_95(params);
         } else if (algorithm.equals("urn:ietf:params:xml:ns:pkigovkz:xmlsec:algorithms:gostr34112015-512")) {
             return new DOMDigestMethod.Gost3411_2015_512(params);
@@ -275,9 +276,9 @@ public final class DOMXMLSignatureFactory extends XMLSignatureFactory {
         }
         if (algorithm.equals(SignatureMethod.RSA_SHA1)) {
             return new DOMSignatureMethod.SHA1withRSA(params);
-        } else if (algorithm.equals(DOMSignatureMethod.RSA_SHA256)) {
+        } else if (algorithm.equals(Constants.MoreAlgorithmsSpecNS + "rsa-sha256")) {
             return new DOMSignatureMethod.SHA256withRSA(params);
-        } else if (algorithm.equals("http://www.w3.org/2001/04/xmldsig-more#gost34310-gost34311")) {
+        } else if (algorithm.equals(Constants.MoreAlgorithmsSpecNS + "gost34310-gost34311")) {
             return new DOMSignatureMethod.EcGost34310_2004(params);
         } else if (algorithm
                 .equals("urn:ietf:params:xml:ns:pkigovkz:xmlsec:algorithms:gostr34102015-gostr34112015-512")) {
