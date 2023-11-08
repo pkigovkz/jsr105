@@ -132,6 +132,10 @@ public abstract class DOMSignatureMethod extends AbstractDOMSignatureMethod {
             return new SHA1withRSA(smElem);
         } else if (alg.equals(Constants.MoreAlgorithmsSpecNS + "rsa-sha256")) {
             return new SHA256withRSA(smElem);
+        } else if (alg.equals(Constants.MoreAlgorithmsSpecNS + "gost34310-gost34311")) {
+            return new EcGost34310_2004(smElem);
+        } else if (alg.equals("urn:ietf:params:xml:ns:pkigovkz:xmlsec:algorithms:gostr34102015-gostr34112015-512")) {
+            return new EcGost3410_2015_512(smElem);
         } else {
             throw new MarshalException
                 ("unsupported SignatureMethod algorithm: " + alg);
