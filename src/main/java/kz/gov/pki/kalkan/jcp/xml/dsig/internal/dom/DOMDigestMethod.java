@@ -32,6 +32,7 @@ import javax.xml.crypto.dsig.spec.DigestMethodParameterSpec;
 
 import org.apache.jcp.xml.dsig.internal.dom.DOMStructure;
 import org.apache.jcp.xml.dsig.internal.dom.DOMUtils;
+import org.apache.xml.security.utils.Constants;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
@@ -88,6 +89,10 @@ public abstract class DOMDigestMethod extends DOMStructure
             return new SHA1(dmElem);
         } else if (alg.equals(DigestMethod.SHA256)) {
             return new SHA256(dmElem);
+        } else if (alg.equals(Constants.MoreAlgorithmsSpecNS + "gost34311")) {
+            return new Gost34311_95(dmElem);
+        } else if (alg.equals("urn:ietf:params:xml:ns:pkigovkz:xmlsec:algorithms:gostr34112015-512")) {
+            return new Gost3411_2015_512(dmElem);
         } else {
             throw new MarshalException("unsupported DigestMethod algorithm: " +
                                        alg);
@@ -257,7 +262,7 @@ public abstract class DOMDigestMethod extends DOMStructure
         }
         @Override
         public String getAlgorithm() {
-            return "http://www.w3.org/2001/04/xmldsig-more#gost34311";
+            return Constants.MoreAlgorithmsSpecNS + "gost34311";
         }
         @Override
         String getMessageDigestAlgorithm() {
